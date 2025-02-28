@@ -1,3 +1,4 @@
+import html
 import requests
 import json
 import polars as pl
@@ -47,6 +48,14 @@ else:
 
 
 # Transform: Extract Date from Summary
+def clean_text(raw_text):
+    """Cleans HTML entities and extra line breaks in the air quality text."""
+    if not raw_text:
+        return None
+    cleaned_text = html.unescape(raw_text)  # Convert HTML entities
+    cleaned_text = cleaned_text.replace("<br/>", "\n").strip()  # Replace line breaks
+    return cleaned_text
+
 def extract_date(forecast_summary: str) -> datetime:
     match = re.search(r"(\d{1,2} \w+)", forecast_summary)
 
@@ -64,7 +73,7 @@ def transform_forecast(forecast: List[Dict]) -> pl.DataFrame:
             "forecast_id": day.get("forecastID"),
             "type": day.get("forecastType"),
             "band": day.get("forecastBand"),
-            "summary": day.get("forecastSummary"),
+            "summary": clean_text(day.get("forecastSummary")),
             "forecast_date": extract_date(day.get("forecastSummary", "")).date(),
             "end_date": datetime.strptime(day.get("toDate"), "%Y-%m-%dT%H:%M:%SZ").date(),
             "nO2Band": day.get("nO2Band"),
@@ -72,7 +81,7 @@ def transform_forecast(forecast: List[Dict]) -> pl.DataFrame:
             "pM10Band": day.get("pM10Band"),
             "pM25Band": day.get("pM25Band"),
             "sO2Band": day.get("sO2Band"),
-            "text": day.get("forecastText"),
+            "text": clean_text(day.get("forecastText")),
         })
 
     return pl.DataFrame(processed_forecasts)
