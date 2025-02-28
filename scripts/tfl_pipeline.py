@@ -15,7 +15,6 @@ DB_URI = os.getenv("DB_URI")
 conn = psycopg2.connect(DB_URI)
 cursor = conn.cursor()
 
-
 # Extract: Fetch TfL API Data
 API_URL = "https://api.tfl.gov.uk/AirQuality/"
 
@@ -97,7 +96,13 @@ for row in df.iter_rows(named=True):
             nO2Band, o3Band, pM10Band, pM25Band, sO2Band, text
         )
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (id) DO NOTHING;
+        ON CONFLICT (id) DO UPDATE 
+        SET 
+            (forecast_id, type, band, summary, forecast_date, end_date, nO2Band, o3Band, pM10Band, pM25Band, sO2Band, text) 
+            = 
+            (EXCLUDED.forecast_id, EXCLUDED.type, EXCLUDED.band, EXCLUDED.summary, EXCLUDED.forecast_date, EXCLUDED.end_date, 
+            EXCLUDED.nO2Band, EXCLUDED.o3Band, EXCLUDED.pM10Band, EXCLUDED.pM25Band, EXCLUDED.sO2Band, EXCLUDED.text);
+
     """, (
         row["id"], row["forecast_id"], row["type"], row["band"], row["summary"],
         row["forecast_date"], row["end_date"], row["nO2Band"], row["o3Band"],
