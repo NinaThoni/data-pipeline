@@ -19,15 +19,12 @@ jobs:
           python-version: "3.10.12"
 
       - name: Install dependencies
-        run: |
-          grep -v "cloud-init" requirements.txt > temp_requirements.txt
-          pip install -r temp_requirements.txt
+        run: pip install -r requirements.txt
         
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
 
       - name: Run the data pipeline script
         env:
-          DB_NAME: "air_quality_db"
-          DB_USER: "postgres"
-          DB_HOST: "localhost"
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_URI: ${{ secrets.DB_URI }}
         run: python scripts/tfl_pipeline.py
