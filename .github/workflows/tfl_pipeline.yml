@@ -1,0 +1,30 @@
+name: Automate TfL Data Pipeline
+
+on:
+  schedule:
+    - cron: "0 6 * * *"  # Runs every hour (adjust as needed)
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  fetch_and_insert_data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt  # Ensure dependencies are listed
+
+      - name: Run the data pipeline script
+        env:
+          DB_NAME: "air_quality_db"
+          DB_USER: "postgres"
+          DB_HOST: "localhost"
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: python scripts/tfl_pipeline.py
