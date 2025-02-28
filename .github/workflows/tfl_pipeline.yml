@@ -19,7 +19,10 @@ jobs:
           python-version: "3.9"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt  # Ensure dependencies are listed
+        run: |
+          grep -v "cloud-init" requirements.txt > temp_requirements.txt
+          pip install -r temp_requirements.txt
+        
 
       - name: Run the data pipeline script
         env:
