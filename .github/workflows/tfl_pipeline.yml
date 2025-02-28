@@ -2,7 +2,7 @@ name: Automate TfL Data Pipeline
 
 on:
   schedule:
-    - cron: "0 13 * * *"  # Runs every hour (adjust as needed)
+    - cron: "0 6 * * *"  # Runs every hour (adjust as needed)
   workflow_dispatch:  # Allows manual trigger
 
 jobs:
