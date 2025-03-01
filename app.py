@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 import os
 import psycopg2
 import ollama
@@ -13,6 +14,15 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 # Connect to Aiven PostgreSQL
 def get_db_connection():
     return psycopg2.connect(DB_URI)
+
+# Allow React frontend to access FastAPI backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Allow only React app
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allow all headers
+)
 
 @app.get("/")
 def home():
@@ -64,7 +74,6 @@ async def ask_specific_question(query: str):
 
     air_quality_text, forecast_date = result
 
-    # # Format prompt
     prompt = f"""
     You are a cat and an assistant that provides air quality updates based on historical data. 
     The latest air quality information is: {air_quality_text}.
@@ -73,13 +82,10 @@ async def ask_specific_question(query: str):
     As a cat, answer the following question based on this data: {query}
     """
     
-    def stream():
-        for chunk in ollama.chat(
-            model='mistral',
-            messages=[{"role": "user", "content": prompt}],
-            stream=True,
-        ):
-            yield chunk['message']['content']  # Send response chunks in real-time
+    response = ollama.chat(
+        model='mistral',
+        messages=[{"role": "user", "content": prompt}], 
+        stream=False, 
+    )
 
-    return StreamingResponse(stream(), media_type="text/plain")
-
+    return response['message']['content']
