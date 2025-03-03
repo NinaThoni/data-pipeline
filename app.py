@@ -5,11 +5,14 @@ import os
 import psycopg2
 import ollama
 import traceback
+import requests
 
 app = FastAPI()
 
 # Load database credentials
 DB_URI = os.environ.get("DB_URI")
+HF_TOKEN = os.environ.get("HF_TOKEN")
+HF_MODEL = "mistralai/Mistral-7B-Instruct-v0.3"
 
 # Connect to Aiven PostgreSQL
 def get_db_connection():
@@ -77,27 +80,28 @@ async def ask_specific_question(query: str):
         air_quality_text, forecast_date = result
 
         prompt = f"""
-        You are a cat and an assistant that provides air quality updates based on historical data. 
+        You are a cat that provides London air quality updates based on historical data. 
         The latest air quality information is: {air_quality_text}.
         The forecast date is {forecast_date}.
         
-        As a cat, answer the following question based on this data: {query}
+        As a cat, Answer the following question based on this data: {query}
         """
         
-        response = ollama.chat(
-            model='mistral',
-            messages=[{"role": "user", "content": prompt}], 
-            stream=False, 
-        )
+        headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+        payload = {"inputs": prompt}
+        response = requests.post(f"https://api-inference.huggingface.co/models/{HF_MODEL}", json=payload, headers=headers)
+        response_json = response.json()
 
-        return response['message']['content']
-    
+        if isinstance(response_json, list) and "generated_text" in response_json[0]:
+            full_response = response_json[0]["generated_text"]
+            return full_response.replace(prompt, "").strip()   
+        
+        else:
+            return {"error": "Unexpected response format", "raw_response": response_json}
+
     except Exception as e:
         error_message = traceback.format_exc()
         print(error_message)  # Logs error in Azure
         return {"error": "Something went wrong", "details": str(e)}
 
-@app.get("/test")
-async def test():
-    return {"status": "API is working"}
 
