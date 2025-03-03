@@ -4,12 +4,12 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 import psycopg2
 import ollama
+import traceback
 
 app = FastAPI()
 
 # Load database credentials
 DB_URI = os.environ.get("DB_URI")
-HF_TOKEN = os.environ.get("HF_TOKEN")
 
 # Connect to Aiven PostgreSQL
 def get_db_connection():
@@ -60,35 +60,42 @@ def get_tomorrows_air_quality():
 
 @app.get("/ask")
 async def ask_specific_question(query: str):
-    """Uses Mistral to generate an answer based on air quality data"""
-    conn = get_db_connection()
-    cursor = conn.cursor()
 
-    # Get the latest air quality text + forecast date
-    cursor.execute("SELECT text, forecast_date FROM air_quality ORDER BY forecast_date DESC LIMIT 1;")
-    result = cursor.fetchone()
-    conn.close()
+    try:
+        """Uses Mistral to generate an answer based on air quality data"""
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    if not result:
-        return {"message": "No air quality data available"}
+        # Get the latest air quality text + forecast date
+        cursor.execute("SELECT text, forecast_date FROM air_quality ORDER BY forecast_date DESC LIMIT 1;")
+        result = cursor.fetchone()
+        conn.close()
 
-    air_quality_text, forecast_date = result
+        if not result:
+            return {"message": "No air quality data available"}
 
-    prompt = f"""
-    You are a cat and an assistant that provides air quality updates based on historical data. 
-    The latest air quality information is: {air_quality_text}.
-    The forecast date is {forecast_date}.
+        air_quality_text, forecast_date = result
+
+        prompt = f"""
+        You are a cat and an assistant that provides air quality updates based on historical data. 
+        The latest air quality information is: {air_quality_text}.
+        The forecast date is {forecast_date}.
+        
+        As a cat, answer the following question based on this data: {query}
+        """
+        
+        response = ollama.chat(
+            model='mistral',
+            messages=[{"role": "user", "content": prompt}], 
+            stream=False, 
+        )
+
+        return response['message']['content']
     
-    As a cat, answer the following question based on this data: {query}
-    """
-    
-    response = ollama.chat(
-        model='mistral',
-        messages=[{"role": "user", "content": prompt}], 
-        stream=False, 
-    )
-
-    return response['message']['content']
+    except Exception as e:
+        error_message = traceback.format_exc()
+        print(error_message)  # Logs error in Azure
+        return {"error": "Something went wrong", "details": str(e)}
 
 @app.get("/test")
 async def test():
