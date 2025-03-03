@@ -89,3 +89,8 @@ async def ask_specific_question(query: str):
     )
 
     return response['message']['content']
+
+@app.get("/test")
+async def test():
+    return {"status": "API is working"}
+
