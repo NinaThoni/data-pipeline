@@ -21,7 +21,7 @@ def get_db_connection():
 # Allow React frontend to access FastAPI backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Allow only React app
+    allow_origins=["https://proud-river-0cfed1503.6.azurestaticapps.net"],  # Allow only React app
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
