@@ -8,8 +8,8 @@ import ollama
 app = FastAPI()
 
 # Load database credentials
-DB_URI = os.getenv("DB_URI")
-HF_TOKEN = os.getenv("HF_TOKEN")
+DB_URI = os.environ.get("DB_URI")
+HF_TOKEN = os.environ.get("HF_TOKEN")
 
 # Connect to Aiven PostgreSQL
 def get_db_connection():
