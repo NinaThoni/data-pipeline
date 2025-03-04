@@ -23,7 +23,8 @@ def get_db_connection():
 # Allow React frontend to access FastAPI backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://proud-river-0cfed1503.6.azurestaticapps.net"],  # Allow only React app
+    # allow_origins=["https://proud-river-0cfed1503.6.azurestaticapps.net"],  # Allow only React app
+    allow_origins=["http://localhost:3000", "https://proud-river-0cfed1503.6.azurestaticapps.net"],  # ✅ Add both local & deployed frontend URLs
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
@@ -97,7 +98,7 @@ async def ask_specific_question(query: str):
         if isinstance(response_json, list) and "generated_text" in response_json[0]:
             answer = response_json[0]["generated_text"].replace(prompt, "").strip()
             print(answer)
-            return {"answer": answer}   
+            return answer
         
         else:
             return {"error": "Unexpected response format", "raw_response": response_json}
