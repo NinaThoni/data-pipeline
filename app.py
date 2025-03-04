@@ -96,11 +96,7 @@ async def ask_specific_question(query: str):
 
         if isinstance(response_json, list) and "generated_text" in response_json[0]:
             answer = response_json[0]["generated_text"].replace(prompt, "").strip()
-
-            # ✅ Log only the query and the generated answer
-            logging.info(f"Question: {query}")
-            logging.info(f"Generated Answer: {answer}")
-
+            print(answer)
             return {"answer": answer}   
         
         else:
