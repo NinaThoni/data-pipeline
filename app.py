@@ -5,7 +5,6 @@ import os
 import psycopg2
 import ollama
 import traceback
-import requests
 from datetime import date
 import logging
 
