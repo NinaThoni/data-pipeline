@@ -4,3 +4,4 @@ polars==1.24.0
 psycopg2==2.9.10
 uvicorn
 gunicorn
+requests
