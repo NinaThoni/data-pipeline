@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from fastapi import Request
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
@@ -9,16 +8,10 @@ import traceback
 import requests
 from datetime import date
 import logging
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 
 logging.basicConfig(level=logging.WARNING)
 
 app = FastAPI()
-
-# Initialize rate limiter
-limiter = Limiter(key_func=get_remote_address)
-app.state.limiter = limiter
 
 # Load database credentials
 DB_URI = os.environ.get("DB_URI")
@@ -73,9 +66,7 @@ def get_tomorrows_air_quality():
     return {"message": "No data available"}
 
 @app.get("/ask")
-@limiter.limit("10/minute")  # Limits to 10 requests per minute per IP
-async def ask_specific_question(request: Request, query: str):  
-
+async def ask_specific_question(query: str):  
 
     try:
         """Uses Mistral to generate an answer based on air quality data"""
