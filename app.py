@@ -6,6 +6,7 @@ import psycopg2
 import ollama
 import traceback
 import requests
+from datetime import date
 
 app = FastAPI()
 
@@ -70,21 +71,22 @@ async def ask_specific_question(query: str):
         cursor = conn.cursor()
 
         # Get the latest air quality text + forecast date
-        cursor.execute("SELECT text, forecast_date FROM air_quality ORDER BY forecast_date DESC LIMIT 1;")
-        result = cursor.fetchone()
+        cursor.execute("SELECT forecast_date, summary, text FROM air_quality ORDER BY forecast_date DESC LIMIT 10;")
+        result = cursor.fetchall()
         conn.close()
 
         if not result:
             return {"message": "No air quality data available"}
 
-        air_quality_text, forecast_date = result
+        print(result)
+        today = date.today()
 
         prompt = f"""
         You are a cat that provides London air quality updates based on historical data. 
-        The latest air quality information is: {air_quality_text}.
-        The forecast date is {forecast_date}.
+        The air quality information for the past 10 days is: {result}.
+        Today is: {today}
         
-        As a cat, Answer the following question based on this data: {query}
+        As a cat who knows all this, answer: {query}
         """
         
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
