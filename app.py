@@ -5,6 +5,7 @@ import psycopg2
 import traceback
 from datetime import date
 import logging
+import requests
 
 logging.basicConfig(level=logging.WARNING)
 
