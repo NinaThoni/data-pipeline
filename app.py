@@ -7,8 +7,17 @@ import ollama
 import traceback
 import requests
 from datetime import date
+import logging
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+logging.basicConfig(level=logging.WARNING)
 
 app = FastAPI()
+
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
 
 # Load database credentials
 DB_URI = os.environ.get("DB_URI")
@@ -63,6 +72,7 @@ def get_tomorrows_air_quality():
     return {"message": "No data available"}
 
 @app.get("/ask")
+@limiter.limit("10/minute")  # Limits to 10 requests per minute per IP
 async def ask_specific_question(query: str):
 
     try:
@@ -78,7 +88,6 @@ async def ask_specific_question(query: str):
         if not result:
             return {"message": "No air quality data available"}
 
-        print(result)
         today = date.today()
 
         prompt = f"""
@@ -95,8 +104,13 @@ async def ask_specific_question(query: str):
         response_json = response.json()
 
         if isinstance(response_json, list) and "generated_text" in response_json[0]:
-            full_response = response_json[0]["generated_text"]
-            return full_response.replace(prompt, "").strip()   
+            answer = response_json[0]["generated_text"].replace(prompt, "").strip()
+
+            # ✅ Log only the query and the generated answer
+            logging.info(f"Question: {query}")
+            logging.info(f"Generated Answer: {answer}")
+
+            return {"answer": answer}   
         
         else:
             return {"error": "Unexpected response format", "raw_response": response_json}
