@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi import Request
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
@@ -73,7 +74,8 @@ def get_tomorrows_air_quality():
 
 @app.get("/ask")
 @limiter.limit("10/minute")  # Limits to 10 requests per minute per IP
-async def ask_specific_question(query: str):
+async def ask_specific_question(request: Request, query: str):  
+
 
     try:
         """Uses Mistral to generate an answer based on air quality data"""
