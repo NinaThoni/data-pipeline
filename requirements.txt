@@ -2,7 +2,5 @@ fastapi==0.115.11
 ollama==0.4.7
 polars==1.24.0
 psycopg2==2.9.10
-Requests==2.32.3
-slowapi==0.1.9
 uvicorn
 gunicorn
