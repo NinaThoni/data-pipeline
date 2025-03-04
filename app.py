@@ -1,9 +1,7 @@
 from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import psycopg2
-import ollama
 import traceback
 from datetime import date
 import logging
